@@ -1,0 +1,47 @@
+name: Actualizador de Empleos 🤖
+
+# Cuándo se ejecutará esto
+on:
+  schedule:
+    - cron: '0 */4 * * *' # Esto significa: Ejecutar cada 4 horas
+  workflow_dispatch: # Esto te permite ejecutarlo manualmente con un botón si quieres
+
+# Qué hará
+jobs:
+  buscar-trabajos:
+    runs-on: ubuntu-latest
+    
+    # Permisos para poder guardar el archivo JSON nuevo
+    permissions:
+      contents: write
+
+    steps:
+      # 1. Copiar los archivos
+      - name: Descargar el código
+        uses: actions/checkout@v3
+
+      # 2. Instalar Python
+      - name: Instalar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # 3. Instalar lo que necesitamos (BeautifulSoup y Requests)
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      # 4. Ejecutar tu archivo scraper.py
+      - name: Ejecutar el Robot Buscador
+        run: python scraper.py
+
+      # 5. Guardar el nuevo jobs.json en tu página web
+      - name: Guardar y subir los cambios
+        run: |
+          git config --global user.name "Robot Buscador"
+          git config --global user.email "robot@ejemplo.com"
+          git add jobs.json
+          # Si hay cambios, los sube; si no, no hace nada
+          git commit -m "Actualizando lista de empleos automáticamente 🚀" || echo "No hay cambios para subir"
+          git push
